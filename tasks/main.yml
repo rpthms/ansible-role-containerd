@@ -71,6 +71,7 @@
   lineinfile:
     regexp: '^(\s*)snapshotter\s*='
     line: '\1snapshotter = "{{ containerd_config_default_snapshotter }}"'
+    backrefs: 'yes'
     state: present
     path: /etc/containerd/config.toml
 
