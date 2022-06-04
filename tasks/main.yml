@@ -29,7 +29,7 @@
 
 - name: Get defaults from containerd.
   shell: "containerd config default > /etc/containerd/config.toml"
-  when: not container_config_stat.stat.exists
+  when: not containerd_config_stat.stat.exists
 
 - name: Set Cgroup driver to systemd
   lineinfile:
