@@ -53,13 +53,6 @@
   when: containerd_config_default_write and containerd_config_cgroup_driver_systemd
   changed_when: false
 
-- name: Set the default snapshotter
-  lineinfile:
-    regexp: '^(\s*)snapshotter\s*='
-    line: '\1snapshotter = "{{ containerd_config_default_snapshotter }}"'
-    state: present
-    path: /tmp/containerd_config.toml
-
 - name: Copy config.toml to /etc/containerd
   copy:
     remote_src: true
@@ -73,6 +66,13 @@
     path: /tmp/containerd_config.toml
     state: absent
   changed_when: false
+
+- name: Set the default snapshotter
+  lineinfile:
+    regexp: '^(\s*)snapshotter\s*='
+    line: '\1snapshotter = "{{ containerd_config_default_snapshotter }}"'
+    state: present
+    path: /etc/containerd/config.toml
 
 - name: Ensure /etc/systemd/system/containerd.service.d exists
   file:
