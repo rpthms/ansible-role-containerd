@@ -75,7 +75,7 @@
     group: root
     mode: 0755
 
-- name: Set the systemd slice of the containerd service
+- name: Silence the constant containerd mount noise from systemd
   copy:
     src: "silence-containerd-mounts.conf"
     dest: "/etc/systemd/system/run-containerd-runc-.mount.d/silence-containerd-mounts.conf"
