@@ -34,10 +34,11 @@
 - name: Set Cgroup driver to systemd
   lineinfile:
     regexp: '^(\s*)SystemdCgroup\s*='
-    line: '\1SystemdCgroup = {{ containerd_config_cgroup_driver_systemd }}'
+    line: '\1SystemdCgroup = {{ containerd_config_cgroup_driver_systemd | to_json }}'
     backrefs: 'yes'
     state: present
     path: /etc/containerd/config.toml
+  notify: restart containerd
 
 - name: Set the default snapshotter
   lineinfile:
@@ -46,6 +47,7 @@
     backrefs: 'yes'
     state: present
     path: /etc/containerd/config.toml
+  notify: restart containerd
 
 - name: Ensure /etc/systemd/system/containerd.service.d exists
   file:
