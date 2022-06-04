@@ -22,14 +22,22 @@
     state: directory
   register: containerd_dir
 
-- name: Check if the containerd config already exists.
+- name: Check if the containerd default config exists.
   stat:
-    path: "/etc/containerd/config.toml"
-  register: containerd_config_stat
+    path: "/etc/containerd/config-default.toml"
+  register: containerd_default_config_stat
 
 - name: Get defaults from containerd.
-  shell: "containerd config default > /etc/containerd/config.toml"
-  when: not containerd_config_stat.stat.exists
+  shell: "containerd config default > /etc/containerd/config-default.toml"
+  when: not containerd_default_config_stat.stat.exists
+
+- name: Copy the defaults over to /etc/containerd/config.toml
+  copy:
+    remote_src: true
+    src: /etc/containerd/config-default.toml
+    dest: /etc/containerd/config.toml
+  when: not containerd_default_config_stat.stat.exists
+  notify: restart containerd
 
 - name: Set Cgroup driver to systemd
   lineinfile:
