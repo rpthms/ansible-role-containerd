@@ -7,27 +7,23 @@
       - gnupg2
     state: present
 
-- name: Add Docker apt key.
-  apt_key:
+- name: Download the Docker apt key.
+  get_url:
     url: "{{ docker_apt_gpg_key }}"
-    id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
-    state: present
-  register: add_repository_key
-  ignore_errors: "{{ docker_apt_ignore_key_error }}"
+    dest: "{{ docker_apt_gpg_key_local_path }}.armored"
+    checksum: "sha256:1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570"
+    owner: root
+    group: root
+    mode: 0644
 
-- name: Ensure curl is present (on older systems without SNI).
-  package: name=curl state=present
-  when: add_repository_key is failed
-
-- name: Add Docker apt key (alternative for older systems without SNI).
-  shell: >
-    curl -sSL {{ docker_apt_gpg_key }} | sudo apt-key add -
+- name: Dearmor the downloaded GPG key.
+  shell: "gpg --dearmor < {{ docker_apt_gpg_key_local_path }}.armored > {{ docker_apt_gpg_key_local_path }}"
   args:
-    warn: false
-  when: add_repository_key is failed
+    creates: "{{ docker_apt_gpg_key_local_path }}"
 
 - name: Add Docker repository.
   apt_repository:
     repo: "{{ docker_apt_repository }}"
+    filename: "docker"
     state: present
     update_cache: true

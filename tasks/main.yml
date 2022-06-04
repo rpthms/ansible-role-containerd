@@ -53,6 +53,13 @@
   when: containerd_config_default_write and containerd_config_cgroup_driver_systemd
   changed_when: false
 
+- name: Set the default snapshotter
+  lineinfile:
+    regexp: '^(\s*)snapshotter\s*='
+    line: '\1snapshotter = "{{ containerd_config_default_snapshotter }}"'
+    state: present
+    path: /tmp/containerd_config.toml
+
 - name: Copy config.toml to /etc/containerd
   copy:
     remote_src: true
@@ -66,6 +73,24 @@
     path: /tmp/containerd_config.toml
     state: absent
   changed_when: false
+
+- name: Ensure /etc/systemd/system/containerd.service.d exists
+  file:
+    path: "/etc/systemd/system/containerd.service.d"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: containerd_systemd_slice != 'system.slice'
+
+- name: Set the systemd slice of the containerd service
+  template:
+    src: "containerd-slice.conf.j2"
+    dest: "/etc/systemd/system/containerd.service.d/slice.conf"
+    owner: root
+    group: root
+    mode: 0644
+  when: containerd_systemd_slice != 'system.slice'
 
 - name: Ensure containerd is restarted immediately if necessary.
   meta: flush_handlers
