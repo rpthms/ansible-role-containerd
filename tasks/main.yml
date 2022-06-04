@@ -22,50 +22,22 @@
     state: directory
   register: containerd_dir
 
-- name: Get defaults from containerd.
-  command: containerd config default
-  changed_when: false
-  register: containerd_config_default
-  when: containerd_config_default_write
+- name: Check if the containerd config already exists.
+  stat:
+    path: "/etc/containerd/config.toml"
+  register: containerd_config_stat
 
-- name: Prepare containerd/config.toml from default config
-  copy:
-    dest: /tmp/containerd_config.toml
-    content: "{{ containerd_config_default.stdout }}"
-  when: containerd_config_default_write
-  changed_when: false
+- name: Get defaults from containerd.
+  shell: "containerd config default > /etc/containerd/config.toml"
+  when: not container_config_stat.stat.exists
 
 - name: Set Cgroup driver to systemd
   lineinfile:
-    insertafter: '.*\[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options\]$'
-    line: '          SystemdCgroup = true'
+    regexp: '^(\s*)SystemdCgroup\s*='
+    line: '\1SystemdCgroup = {{ containerd_config_cgroup_driver_systemd }}'
+    backrefs: 'yes'
     state: present
-    path: /tmp/containerd_config.toml
-  when: containerd_config_default_write and containerd_config_cgroup_driver_systemd
-  changed_when: false
-
-- name: Make sure  SystemdCgroup = false is not set
-  ansible.builtin.lineinfile:
-    path: /tmp/containerd_config.toml
-    state: absent
-    line: '            SystemdCgroup = false'
-  notify: restart containerd
-  when: containerd_config_default_write and containerd_config_cgroup_driver_systemd
-  changed_when: false
-
-- name: Copy config.toml to /etc/containerd
-  copy:
-    remote_src: true
-    src: /tmp/containerd_config.toml
-    dest: /etc/containerd/config.toml
-  notify: restart containerd
-  when: containerd_config_default_write
-
-- name: Cleanup temporary file
-  file:
-    path: /tmp/containerd_config.toml
-    state: absent
-  changed_when: false
+    path: /etc/containerd/config.toml
 
 - name: Set the default snapshotter
   lineinfile:
