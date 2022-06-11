@@ -7,6 +7,14 @@
       - gnupg2
     state: present
 
+- name: Ensure the directory for the APT key exists
+  file:
+    path: "{{ docker_apt_gpg_key_local_path | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
 - name: Download the Docker apt key.
   get_url:
     url: "{{ docker_apt_gpg_key }}"
