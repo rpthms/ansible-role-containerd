@@ -91,5 +91,13 @@
     group: root
     mode: 0644
 
+- name: Add a config file for crictl
+  copy:
+    src: "crictl.yaml"
+    dest: "/etc/crictl.yaml"
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Ensure containerd is restarted immediately if necessary.
   meta: flush_handlers
